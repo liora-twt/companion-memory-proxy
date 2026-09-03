@@ -54,6 +54,9 @@ MEMORY_TOP_K = "50"
 MEMORY_INJECT_DECAY_FACTOR = "0.15"
 # E 轴: 亲笔记忆 (authored_by 非空) 排序加成，只影响排序不影响地板。"1" 关闭。
 MEMORY_AUTHORED_BOOST = "1.15"
+# Swap 快照回滚: nightly cron 在 dream/retention/monthly 前对受影响表拍快照，
+# memories 崩坍 (>20% 且 >50 行) 自动回滚。默认开，"false" 关。
+SWAP_ENABLED = "true"
 # 审阅闸: cron 周记落成待审，不顺手删 daily_log；审过走 POST /admin/weekly-approve 亲手删。
 # 设 "true" 恢复旧的一条龙 (生成+落库+删日志，链上无人)。
 WEEKLY_ROLLUP_DELETE_DAILIES = "false"

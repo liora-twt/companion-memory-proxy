@@ -2,6 +2,7 @@ import { authenticate } from "../../auth/apiKey";
 import { listRecentDailyLogs, listRecentWeeklyLogs } from "../../db/v2";
 import { runDiaryWriter } from "../../memory/diaryWriter";
 import { runMonthlyRollup } from "../../memory/monthlyRollup";
+import { dropSwapSnapshot, listSwapSnapshots, restoreSwapSnapshot } from "../../memory/swap";
 import { approveWeeklyRollup, runWeeklyRollup } from "../../memory/weeklyRollup";
 import type { Env } from "../../types";
 import { json, openAiError } from "../../utils/json";
@@ -144,6 +145,60 @@ export async function handleWeeklyApproveAdmin(request: Request, env: Env): Prom
   try {
     const result = await approveWeeklyRollup(env, { namespace, week });
     return json({ data: { namespace, ...result } });
+  } catch (error) {
+    return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, { status: 400 });
+  }
+}
+
+// Swap 快照管理：列表只读，restore/drop 是写操作 (restore 会清库再灌回)。
+export async function handleSwapListAdmin(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticate(request, env);
+  if (!auth.ok) return openAiError("Unauthorized", 401, "authentication_error");
+  if (!auth.profile.scopes.includes("memory:read")) {
+    return openAiError("Missing required scope: memory:read", 403);
+  }
+
+  try {
+    const snapshots = await listSwapSnapshots(env.DB, 50);
+    return json({ data: { snapshots } });
+  } catch (error) {
+    return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+  }
+}
+
+export async function handleSwapRestoreAdmin(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticate(request, env);
+  if (!auth.ok) return openAiError("Unauthorized", 401, "authentication_error");
+  if (!auth.profile.scopes.includes("memory:write")) {
+    return openAiError("Missing required scope: memory:write", 403);
+  }
+
+  const body = await readJsonObject(request);
+  const id = body ? readString(body.id) : undefined;
+  if (!id) return openAiError("id is required", 400);
+
+  try {
+    const result = await restoreSwapSnapshot(env.DB, id);
+    return json({ data: result });
+  } catch (error) {
+    return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, { status: 400 });
+  }
+}
+
+export async function handleSwapDropAdmin(request: Request, env: Env): Promise<Response> {
+  const auth = await authenticate(request, env);
+  if (!auth.ok) return openAiError("Unauthorized", 401, "authentication_error");
+  if (!auth.profile.scopes.includes("memory:write")) {
+    return openAiError("Missing required scope: memory:write", 403);
+  }
+
+  const body = await readJsonObject(request);
+  const id = body ? readString(body.id) : undefined;
+  if (!id) return openAiError("id is required", 400);
+
+  try {
+    const result = await dropSwapSnapshot(env.DB, id);
+    return json({ data: result });
   } catch (error) {
     return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, { status: 400 });
   }

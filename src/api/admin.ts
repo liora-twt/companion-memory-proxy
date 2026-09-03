@@ -5,5 +5,8 @@ export {
   handleWeeklyRollupAdmin,
   handleWeeklyApproveAdmin,
   handleMonthlyRollupAdmin,
-  handleStarmap
+  handleStarmap,
+  handleSwapListAdmin,
+  handleSwapRestoreAdmin,
+  handleSwapDropAdmin
 } from "./admin/handlers";

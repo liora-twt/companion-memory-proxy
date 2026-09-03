@@ -65,6 +65,8 @@ export interface Env {
   WEEKLY_ROLLUP_DELETE_DAILIES?: string;
   // monthly_log rollup after weekly; default on unless "false"
   ENABLE_MONTHLY_ROLLUP?: string;
+  // swap 快照回滚 (dream/retention/monthly 拍快照，崩坍自动回滚)。默认开，"false" 关。
+  SWAP_ENABLED?: string;
   // boot [Impressions] ladder char budget; default 1000
   IMPRESSION_LADDER_MAX_CHARS?: string;
   // dedicated diary writer after dream; default on unless "false"
